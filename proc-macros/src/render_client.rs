@@ -52,10 +52,17 @@ impl RpcDescription {
 		let sub_impls = self.subscriptions.iter().map(|sub| self.render_sub(sub)).collect::<Result<Vec<_>, _>>()?;
 
 		let async_trait = self.jrps_client_item(quote! { core::__reexports::async_trait });
+		let insomnia_collection =
+			proc_macro2::Literal::string(&serde_json::to_string_pretty(&self.generate_insomnia_collection()).unwrap());
 
 		// Doc-comment to be associated with the client.
 		let doc_comment = format!("Client implementation for the `{}` RPC API.", &self.trait_def.ident);
 		let trait_impl = quote! {
+			/// Insomnia collection
+			pub fn insomnia_v4_collection() -> String {
+				#insomnia_collection.to_string()
+			}
+
 			#[#async_trait]
 			#[doc = #doc_comment]
 			pub trait #trait_name #impl_generics: #super_trait where #(#where_clause,)* {
@@ -72,7 +79,7 @@ impl RpcDescription {
 	/// Verify and rewrite the return type (for methods).
 	fn return_result_type(&self, mut ty: syn::Type) -> TokenStream2 {
 		// We expect a valid type path.
-		let syn::Type::Path(ref mut type_path) = ty else  {
+		let syn::Type::Path(ref mut type_path) = ty else {
 			return quote_spanned!(ty.span() => compile_error!("Expecting something like 'Result<Foo, Err>' here. (1)"));
 		};
 
@@ -82,7 +89,8 @@ impl RpcDescription {
 		};
 
 		// Get the generic args eg the <T, E> in Result<T, E>.
-		let PathArguments::AngleBracketed(AngleBracketedGenericArguments { args, .. }) = &mut type_name.arguments else {
+		let PathArguments::AngleBracketed(AngleBracketedGenericArguments { args, .. }) = &mut type_name.arguments
+		else {
 			return quote_spanned!(ty.span() => compile_error!("Expecting something like 'Result<Foo, Err>' here, but got no generic args (eg no '<Foo,Err>')."));
 		};
 

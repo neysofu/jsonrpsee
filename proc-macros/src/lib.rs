@@ -32,6 +32,7 @@ use rpc_macro::RpcDescription;
 
 mod attributes;
 mod helpers;
+mod insomnia_collection;
 mod render_client;
 mod render_server;
 mod rpc_macro;

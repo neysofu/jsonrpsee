@@ -23,6 +23,11 @@ syn = { version = "1.0", default-features = false, features = ["extra-traits", "
 proc-macro-crate = "1"
 heck = "0.4.0"
 
+# sovereign-sdk-fork dependencies
+serde_json = "1"
+serde = "1"
+uuid = { version = "1.4", features = ["v4"] }
+
 [dev-dependencies]
 jsonrpsee = { path = "../jsonrpsee", features = ["server", "client-core", "http-client", "ws-client", "macros"] }
 trybuild = "1.0"
